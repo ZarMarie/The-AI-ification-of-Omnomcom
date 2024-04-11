@@ -13,7 +13,7 @@ for encoding, folder in enumerate(os.listdir('augmented data')):
     for file in os.listdir(f'augmented data/{folder}'):
         df.loc[len(df.index)] = [encoding, cv2.imread(f"augmented data/{folder}/{file}")]
 
-model = tf.keras.applications.VGG16(include_top=False, pooling="avg")
+model = tf.keras.applications.VGG16(include_top=False)
 
 pooling_layer = tf.keras.layers.GlobalAveragePooling2D()
 dense_layer_1 = tf.keras.layers.Dense(1024, activation='relu')
@@ -25,8 +25,10 @@ model = tf.keras.models.Sequential([
     pooling_layer,
     dense_layer_1,
     dropout_layer,
+    tf.keras.layers.BatchNormalization(),
     dense_layer_2,
     dropout_layer,
+    tf.keras.layers.BatchNormalization(),
     output_layer
 ])
 
@@ -38,21 +40,19 @@ model.compile(
 
 X = np.array(df['image'].tolist())
 y = np.array(df['class'].tolist())
+y = tf.keras.utils.to_categorical(y, num_classes=10)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
-y_train = tf.keras.utils.to_categorical(y_train, num_classes=10)
-y_val = tf.keras.utils.to_categorical(y_val, num_classes=10)
-y_test = tf.keras.utils.to_categorical(y_test, num_classes=10)
+lr_reduction = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', patience=5, verbose=1, factor=0.5)
 
-history = model.fit(X_train, y_train, epochs=150, validation_data=(X_val, y_val), verbose=2)
+history = model.fit(X_train, y_train, epochs=150, validation_split=0.2, verbose=2, callbacks=[lr_reduction], batch_size=32)
 
 model.save('trained_models/first_model.keras')
 
 test = model.evaluate(X_test, y_test)
 print(test)
-
 
 loss = history.history['loss']
 
