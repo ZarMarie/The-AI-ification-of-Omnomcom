@@ -53,7 +53,7 @@ lr_reduction = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', patience
 
 history = model.fit(X_train, y_train, epochs=150, validation_split=0.2, verbose=2, callbacks=[lr_reduction, es])
 
-model.save('trained_models/first_model.keras')
+model.save('trained_models/actual_first_model.keras')
 
 test = model.evaluate(X_test, y_test)
 print(test)
