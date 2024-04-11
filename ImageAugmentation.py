@@ -26,18 +26,6 @@ def process_image(image_path):
     return custom_convolution
 
 
-def flip_image(image_path):
-    """
-    :param image_path:
-    The filepath of the image to be flipped
-
-    :return:
-    A flipped version of the image
-    """
-    image = cv2.imread(image_path)
-    return cv2.flip(image, 1)
-
-
 def rotate_image(image, step):
     """
     :param image_path:
@@ -56,6 +44,20 @@ def rotate_image(image, step):
         return cv2.rotate(image, cv2.ROTATE_180)
     elif step == 3:
         return cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+
+def brightness_image(image, low, high):
+
+    value = random.uniform(low, high)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    hsv = np.array(hsv, dtype=np.float64)
+    hsv[:, :, 1] = hsv[:, :, 1]*value
+    hsv[:, :, 1][hsv[:, :, 1] > 255] = 255
+    hsv[:, :, 2] = hsv[:, :, 2]*value
+    hsv[:, :, 2][hsv[:, :, 2] > 255] = 255
+    hsv = np.array(hsv, dtype=np.uint8)
+    image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    return image
 
 
 def show_image(image):
