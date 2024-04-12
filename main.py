@@ -48,12 +48,12 @@ y = tf.keras.utils.to_categorical(y, num_classes=10)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2)
 
-es = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=5,  restore_best_weights=True)
-lr_reduction = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', patience=5, verbose=1, factor=0.5)
+es = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=20,  restore_best_weights=True)
+lr_reduction = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', patience=10, verbose=1, factor=0.5)
 
 history = model.fit(X_train, y_train, epochs=150, validation_split=0.2, verbose=2, callbacks=[lr_reduction, es])
 
-model.save('trained_models/actual_first_model.keras')
+model.save('trained_models/third_model.keras')
 
 test = model.evaluate(X_test, y_test)
 print(test)
