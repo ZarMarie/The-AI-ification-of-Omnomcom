@@ -3,7 +3,7 @@ import numpy as np
 import random
 import os
 
-def process_image(image_path):
+def process_image(image_path=None, image=1):
     """
     :param image_path:
     None, but if an image path is given, it will be read and processed
@@ -15,7 +15,10 @@ def process_image(image_path):
     A resized version of the image to be compatible with a vector classifier
     """
 
-    original_image = cv2.imread(image_path) # original refers to the title of the window
+    if not image == 1:
+        original_image = image
+    else:
+        original_image = cv2.imread(image_path) # original refers to the title of the window
 
     sobel_kernel = np.array([[-1, 0, 1,
                             -2, 0, 2,
