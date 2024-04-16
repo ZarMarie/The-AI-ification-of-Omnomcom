@@ -13,13 +13,12 @@ for encoding, folder in enumerate(os.listdir('augmented data')):
     for file in os.listdir(f'augmented data/{folder}'):
         df.loc[len(df.index)] = [encoding, cv2.imread(f"augmented data/{folder}/{file}")]
 
-base_model = tf.keras.applications.VGG16(weights="imagenet", include_top=False)
+base_model = tf.keras.applications.VGG16(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
 base_model.trainable = False
 
 
 pooling_layer = tf.keras.layers.GlobalAveragePooling2D()
 dense_layer_1 = tf.keras.layers.Dense(1024, activation='relu')
-dropout_layer = tf.keras.layers.Dropout(0.3)
 dense_layer_2 = tf.keras.layers.Dense(512, activation='relu')
 output_layer = tf.keras.layers.Dense(10, activation='softmax')
 
@@ -27,10 +26,10 @@ model = tf.keras.models.Sequential([
     base_model,
     pooling_layer,
     dense_layer_1,
-    dropout_layer,
+    tf.keras.layers.Dropout(0.3),
     tf.keras.layers.BatchNormalization(),
     dense_layer_2,
-    dropout_layer,
+    tf.keras.layers.Dropout(0.3),
     tf.keras.layers.BatchNormalization(),
     output_layer
 ])
@@ -40,6 +39,8 @@ model.compile(
     optimizer='adam',
     metrics=['accuracy']
 )
+
+print(model.layers[0].input_shape)
 
 X = np.array(df['image'].tolist())
 y = np.array(df['class'].tolist())
@@ -53,7 +54,9 @@ lr_reduction = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', patience
 
 history = model.fit(X_train, y_train, epochs=150, validation_split=0.2, verbose=2, callbacks=[lr_reduction, es])
 
-model.save('trained_models/third_model.keras')
+model.save('trained_models/fifth_model.keras')
+
+model.save_weights('trained_models/fifth_model.weights.h5')
 
 test = model.evaluate(X_test, y_test)
 print(test)

@@ -15,17 +15,21 @@ def process_image(image_path=None, image=1):
     A resized version of the image to be compatible with a vector classifier
     """
 
-    if not image == 1:
+    if not type(image) == int:
         original_image = image
     else:
         original_image = cv2.imread(image_path) # original refers to the title of the window
 
-    sobel_kernel = np.array([[-1, 0, 1,
-                            -2, 0, 2,
-                            -1, 0, 1]])
+    custom_convolution = cv2.resize(original_image, (224,224))
 
-    custom_convolution = cv2.filter2D(original_image, -1, sobel_kernel)
-    custom_convolution = cv2.resize(custom_convolution, (224,224))
+    # Split the image into its channel components
+    channels = cv2.split(custom_convolution)
+
+
+    sobel_channels = [cv2.Sobel(channel, cv2.CV_64F, 1, 0, ksize=3) + cv2.Sobel(channel, cv2.CV_64F, 0, 1, ksize=3) for channel in channels]
+    sobel_channels = [np.uint8(np.absolute(channel)) for channel in sobel_channels]
+    custom_convolution = cv2.merge(sobel_channels)
+
     return custom_convolution
 
 
