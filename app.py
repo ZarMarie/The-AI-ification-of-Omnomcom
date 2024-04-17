@@ -1,27 +1,25 @@
 import pygame
 from cv2 import VideoCapture, waitKey
 import cv2
-from pygame.locals import *
-from tensorflow.keras import models
 import numpy as np
 from ImageAugmentation import process_image
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+from UI import show_custom_dialog
 
 encoding_dict = {
-    0 : 'Doritos Honey BBQ',
-    1 : 'Tosti',
-    2 : 'Apple Bandit',
-    3 : 'Proto Tie',
-    4 : 'Apple Juice',
-    5 : 'Smint',
-    6 : 'Ice Tea Peach',
-    7 : 'Kinder Bueno',
-    8 : 'Frog',
-    9 : 'Lolipop'
+    0 : ('Doritos Honey BBQ', "0.50"),
+    1 : ('Tosti', "1.10"),
+    2 : ('Apple Bandit', "1.35"),
+    3 : ('Proto Tie', "12.00"),
+    4 : ('Apple Juice', "0.70"),
+    5 : ('Smint', "2.00"),
+    6 : ('Ice Tea Peach', "1.10"),
+    7 : ('Kinder Bueno', "1.00"),
+    8 : ('Frog', "0.75"),
+    9 : ('Lollipop', "0.15")
 }
 
 pygame.init()
@@ -78,6 +76,9 @@ print(model.layers[0].input_shape)
 pred_encoding = []
 actual_encoding = []
 
+count = 0
+last = ""
+
 running = True
 while running:
 
@@ -104,8 +105,20 @@ while running:
 
     encoding_pred = model.predict(processed_image)[0]
 
-    if np.max(encoding_pred) > 0.9:
-        print(encoding_dict[np.argmax(encoding_pred)])
+    item_prediction = encoding_dict[np.argmax(encoding_pred)][0]
+
+    if np.max(encoding_pred) > 0.95:
+        print(item_prediction)
+        if item_prediction != last:
+            count = 0
+        else:
+            count += 1
+        last = item_prediction
+
+    if count == 10:
+        # show_custom_dialog(f"product images/{item_prediction}.jpeg", encoding_dict[np.argmax(encoding_pred)][1])
+        count = 0
+        last_item = ""
 
     # pred_encoding.append(encoding_pred)
 
@@ -118,9 +131,9 @@ while running:
     #     cv2.destroyAllWindows()
     #     print(encoding_dict[encoding_pred], int(chr(k)))
     #
-    # for event in pygame.event.get():
-    #     if event.type == pygame.QUIT:
-    #         running = False
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
 # Confusion Matrix
 plt.figure()

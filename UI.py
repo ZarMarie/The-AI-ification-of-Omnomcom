@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+import threading
 
 image_path = 'data/AppleJuice/1.png'
 price = int
