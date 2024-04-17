@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
-from UI import show_custom_dialog
+from UI import make_popup
 
 encoding_dict = {
     0 : ('Doritos Honey BBQ', "0.50"),
@@ -71,6 +71,8 @@ model.build((None, 224, 224, 3))
 
 model.load_weights('trained_models/fifth_model.weights.h5')
 
+model.summary()
+
 print(model.layers[0].input_shape)
 
 pred_encoding = []
@@ -78,6 +80,7 @@ actual_encoding = []
 
 count = 0
 last = ""
+popup = False
 
 running = True
 while running:
@@ -103,7 +106,7 @@ while running:
 
     processed_image = np.expand_dims(processed_image, axis=0)
 
-    encoding_pred = model.predict(processed_image)[0]
+    encoding_pred = model.predict(processed_image, verbose=0)[0]
 
     item_prediction = encoding_dict[np.argmax(encoding_pred)][0]
 
@@ -116,7 +119,7 @@ while running:
         last = item_prediction
 
     if count == 10:
-        # show_custom_dialog(f"product images/{item_prediction}.jpeg", encoding_dict[np.argmax(encoding_pred)][1])
+        make_popup(f"product images/{item_prediction}.jpeg", encoding_dict[np.argmax(encoding_pred)][1], window, item_prediction)
         count = 0
         last_item = ""
 

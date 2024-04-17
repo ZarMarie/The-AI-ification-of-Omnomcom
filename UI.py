@@ -1,4 +1,4 @@
-import tkinter as tk
+import pygame
 from tkinter import messagebox
 import threading
 
@@ -6,35 +6,41 @@ image_path = 'data/AppleJuice/1.png'
 price = int
 
 
-def show_custom_dialog(image_path, price):
-    # Create a new window for the dialog
-    top = tk.Toplevel()
-    top.title("Is this your item?")
+def make_popup(image_path, price, window, product_name):
+    # make popup menu in white rectangle
+    pygame.draw.rect(window, (255, 255, 255), (50, 50, 860, 440))
 
-    # Load the image
-    image = tk.PhotoImage(file=image_path)  # Replace 'image_path' with your actual image path
+    # load and place image in the center of the popup
+    image = pygame.image.load(image_path)
+    window.blit(image, (480 - image.get_width() // 2, 60))
 
-    # Label to display the image
-    image_label = tk.Label(top, image=image)
-    image_label.pack()
+    # make and place price text
+    font = pygame.font.Font(None, 36)
+    text = font.render(f"Price: ${price}", True, (0, 0, 0))
+    window.blit(text, (480 - text.get_width() // 2, image.get_height()))
 
-    # Text label for the question
-    text_label = tk.Label(top, text=f"Is this your item? Selling for {price} Euros (€)")
-    text_label.pack()
+    # adding green and red yes and no button with text
+    yes_button = pygame.draw.rect(window, (0, 255, 0), (480 - 100, image.get_height() + text.get_height() + 20, 100, 40))
+    no_button = pygame.draw.rect(window, (255, 0, 0), (480, image.get_height() + text.get_height() + 20, 100, 40))
+    text = font.render("Yes", True, (0, 0, 0))
+    window.blit(text, (480 - 100 + 50 - text.get_width() // 2, image.get_height() + 20 + text.get_height() + 10))
+    text = font.render("No", True, (0, 0, 0))
+    window.blit(text, (480 + 50 - text.get_width() // 2, image.get_height() + 20 + text.get_height() + 10))
 
-    # Function to handle button clicks
-    def button_click(result):
-        top.destroy()  # Close the dialog window
-        if result:
-          print("User clicked Yes.")
-        else:
-          print("User clicked No.")
+    # display the window
+    pygame.display.flip()
 
-    # Buttons for Yes and No
-    yes_button = tk.Button(top, text="Yes", command=lambda: button_click(True))
-    yes_button.pack(side=tk.LEFT, padx=150, pady=25)
-    no_button = tk.Button(top, text="No", command=lambda: button_click(False))
-    no_button.pack(side=tk.RIGHT, padx=150, pady=25)
-
-    # Run the main loop for the dialog window
-    top.mainloop()
+    # check if user clicked yes or no; close program and print the selected program on yes, and close the popup on no
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if yes_button.collidepoint(x, y):
+                    print(f"\n_________________________\nAdded {product_name} to cart.\n_________________________")
+                    pygame.quit()
+                    quit()
+                elif no_button.collidepoint(x, y):
+                    return None
