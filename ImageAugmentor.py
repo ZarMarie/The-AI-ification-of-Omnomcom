@@ -4,6 +4,7 @@ import random
 import cv2
 import numpy as np
 
+# Loop through all of the data files and load the file path to be augmented
 for folder in os.listdir('data'):
     for file in os.listdir(f'data/{folder}'):
         image_path = f'data/{folder}/{file}'
@@ -16,8 +17,10 @@ for folder in os.listdir('data'):
         sobel_channels = [np.uint8(np.absolute(channel)) for channel in sobel_channels]
         sobel_colored = cv2.merge(sobel_channels)
 
+        # Randomly select two rotations to apply to the image (done with random.sample so that the same rotation is not applied twice)
         rotation1, rotation2 = random.sample(range(1, 4), 2)
 
+        # Create a dictionary of the 6 different augmented images to be saved
         augmented_images = {
             'original': sobel_colored,
             'rotated1': rotate_image(sobel_colored, rotation1),
@@ -27,6 +30,7 @@ for folder in os.listdir('data'):
             'bright3': brightness_image(rotate_image(sobel_colored, rotation2), 0.5, 1.5)
         }
 
+        # Save the augmented images to the augmented data folder with a new name
         for key, value in augmented_images.items():
             cv2.imwrite(f"augmented data/{folder}/{file[:-4]}-{key}.png", value)
 

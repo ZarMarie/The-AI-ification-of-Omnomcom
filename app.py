@@ -1,14 +1,12 @@
 import pygame
-from cv2 import VideoCapture, waitKey
+from cv2 import VideoCapture
 import cv2
 import numpy as np
 from ImageAugmentation import process_image
 import tensorflow as tf
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 from UI import make_popup
 
+# dictionary to for what number class is which product with its price
 encoding_dict = {
     0 : ('Doritos Honey BBQ', "0.50"),
     1 : ('Tosti', "1.10"),
@@ -24,11 +22,13 @@ encoding_dict = {
 
 pygame.init()
 
+# setup camera and get first image to base window and size off of it
 cam_port = 0
 cam = VideoCapture(cam_port)
 
 result, image = cam.read()
 
+# Convert the image to RGB, resize it, and flip it so that it is displayed correctly
 rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 rgb_image = cv2.resize(rgb_image, (960, 540))
 rgb_image = cv2.flip(rgb_image, 1)
@@ -40,6 +40,7 @@ print(process_image(image=rgb_image).shape)
 # Create a Pygame window
 window = pygame.display.set_mode((width, height))
 
+# Create a new model with the exact same layers as the trained one in main.py
 base_model = tf.keras.applications.VGG16(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
 base_model.trainable = False
 
@@ -69,24 +70,25 @@ model.compile(
 # Build the model
 model.build((None, 224, 224, 3))
 
+# Load the weights of the trained model onto the model
 model.load_weights('trained_models/fifth_model.weights.h5')
 
+# Print the model summary
 model.summary()
 
 print(model.layers[0].input_shape)
 
-pred_encoding = []
-actual_encoding = []
-
+# Variables to keep track of the last item predicted and the count of the same item predicted
 count = 0
 last = ""
 popup = False
 
 running = True
 while running:
-
+    # Get the image from the camera
     result, image = cam.read()
 
+    # Convert the image to RGB, resize it, and flip it so that it is displayed correctly
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     rgb_image = cv2.resize(rgb_image, (960, 540))
     rgb_image = cv2.flip(rgb_image, 1)
@@ -100,16 +102,15 @@ while running:
     # show window
     pygame.display.flip()
 
+    # Process the image and make a prediction
     processed_image = process_image(image=rgb_image)
-
-    # cv2.imshow("current", processed_image)
-
     processed_image = np.expand_dims(processed_image, axis=0)
 
     encoding_pred = model.predict(processed_image, verbose=0)[0]
 
     item_prediction = encoding_dict[np.argmax(encoding_pred)][0]
 
+    # If the prediction is above 95%, print the prediction and increment the same in a row counter if it is the same
     if np.max(encoding_pred) > 0.95:
         print(item_prediction)
         if item_prediction != last:
@@ -118,35 +119,17 @@ while running:
             count += 1
         last = item_prediction
 
+    # If the same item has been predicted 10 times in a row, make a popup with the image of the item and its price
     if count == 10:
         make_popup(f"product images/{item_prediction}.jpeg", encoding_dict[np.argmax(encoding_pred)][1], window, item_prediction)
         count = 0
         last_item = ""
 
-    # pred_encoding.append(encoding_pred)
-
-    # k = cv2.waitKey(0)
-    # if k == ord(' '):
-    #     break
-    #
-    # if chr(k).isalnum():
-    #     actual_encoding.append(int(chr(k)))
-    #     cv2.destroyAllWindows()
-    #     print(encoding_dict[encoding_pred], int(chr(k)))
-    #
+    # Check for events and exit out of the application properly if the window is close
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-# Confusion Matrix
-plt.figure()
-conf_matrix = confusion_matrix(actual_encoding, pred_encoding)
-
-sns.heatmap(conf_matrix, annot=True, fmt="d")
-plt.xlabel("Predicted")
-plt.ylabel("True")
-plt.title('Confusion Matrix')
-plt.show()
-
+# Close the camera and the Pygame window
 cv2.destroyAllWindows()
 pygame.quit()
